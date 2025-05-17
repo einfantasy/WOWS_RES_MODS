@@ -1,0 +1,218 @@
+(def element PlaneReloadProgressAndAttackersBar (_squadronId:number, _isBig:bool, _showProgressBar:bool) layout=true
+	(scope
+		(var squadronEntity:gfx = "$datahub.getPrimaryEntity(CC.ownSquadron, _squadronId)")
+		(var attackerSize:number = "squadronEntity ? squadronEntity.ownSquadron.attackerSize : 0")
+		(var maxSquadPlanes:number = "squadronEntity ? squadronEntity.health.max : 0" (event "squadronEntity.health.evValueChanged"))
+
+		(var hangarEntity:gfx = "$datahub.getPrimaryEntity(CC.hangar, _squadronId)")
+		(var curPlanesInHangar:number = "hangarEntity ? hangarEntity.hangar.planeCount : 0" (event "hangarEntity.hangar.evChanged"))
+		(var maxPlanesInHangar:number = "hangarEntity ? hangarEntity.hangar.maxPlaneCount : 0" (event "hangarEntity.hangar.evChanged"))
+
+		(var countdown:gfx = "hangarEntity && hangarEntity.hasComponent(CC.countDown) ? hangarEntity.countDown : null" (event "hangarEntity.evAdded") (event "hangarEntity.evRemoved"))
+		(var reloadRemainTime:number = "countdown ? countdown.remain : 0" (event "countdown.evRemainChanged"))
+		(macro HUMAN_READABLE_COUNTDOWN_SCOPE "reloadRemainTime")
+
+		(var numAttackers:number = "attackerSize ? maxSquadPlanes/attackerSize : 0")
+		(var squadPlanesReady:number = "curPlanesInHangar < maxSquadPlanes ? curPlanesInHangar : maxSquadPlanes")
+
+		(var _width:number = "_isBig ? SLOT_SIZE : SLOT_SIZE / 2")
+		(var _height:number = "_width")
+
+		(var hangarStatusBarSize:number =  "maxPlanesInHangar ? (curPlanesInHangar / maxPlanesInHangar) * (_width - 2) : 0")
+		(var restoreAnimation:bool = "curPlanesInHangar < maxPlanesInHangar && reloadRemainTime > 0")
+
+		(var cameraEntity:gfx = "$datahub.getSingleEntity(CC.camera)")
+		(var altVision:bool = "cameraEntity.camera.altVision" (event "cameraEntity.camera.evAltVisionChanged"))
+
+		(var avatarEntity:gfx = "$datahub.getSingleEntity(CC.playerAvatar)")
+		(var shipType:str = "avatarEntity.avatar.ship.ref.ship.subtype")
+		(var isAircarrier:bool = "shipType == ShipTypes.AIRCARRIER")
+
+		(var statusBarTextParams:array = "altVision ? [curPlanesInHangar, maxPlanesInHangar] : [squadPlanesReady, maxSquadPlanes]")
+
+	)
+
+	(style
+		(position = "absolute")
+		(width = "_width")
+		(height = "_height")
+	)
+
+	(block
+		(style
+			(position = "absolute")
+			(width = "_width")
+			(bottom = "_height + XXS")
+			(align = "center")
+		)
+
+    #mod ==============================
+	    (block
+	      (style
+					(align="top|center")
+	        (height = "22")
+	      )
+				(element FighterAssistant "_squadronId")
+	    )
+    #==================================
+
+		(element PlanesStatusBarText "statusBarTextParams[0]" "statusBarTextParams[1]" "curPlanesInHangar >= maxSquadPlanes")
+
+
+		(block
+			(style (marginTop = 2px))
+
+			(mc hud_bar_bg_sliced
+				(style
+					(height = 4px)
+					(width = "_width")
+				)
+			)
+
+			(hblock
+				(bind visible "!altVision")
+				(style (position = "absolute") (paddingTop = 1px))
+				(controller $Repeat renderer='AttackerStatusBar' layout=false
+					(bind count "numAttackers")
+					(args "_squadronId" "_width")
+				)
+			)
+
+			(block
+				(bind visible "altVision")
+				(style
+					(position = "absolute") (height = 2px) (left = 1) (top = 1)
+					(backgroundColor = 0xFFD7D7D7)
+					(bind width "hangarStatusBarSize")
+				)
+			)
+		)
+	)
+
+	(block
+		(bind visible "altVision && restoreAnimation && isAircarrier && _showProgressBar")
+		(class $FullsizeAbsolute)
+		(style
+			(backgroundColor = 0xCC000000)
+			(align = "center|middle")
+		)
+		(block
+			(tf
+				(style (marginRight = 1px) (marginLeft = 2px))
+				(alpha = 0.8)
+				(bind class "_isBig ? '$TextDefault27NM' : '$TextDefaultBold13NM'")
+				(bind text "countdownText")
+			)
+		)
+	)
+)
+
+#mod =======================================================================================================================================================================================================
+(def element FighterAssistant(_squadronId:number)
+	(scope
+
+		#Squadron Consumables
+		(var battleConsumableCol:gfx = "$datahub.getCollection(CC.battleConsumable)")
+		(var squadronConsumablesCol:gfx = "battleConsumableCol.getChildByPath('bySquadron.' + _squadronId)")
+		(var squadronConsumablesColCount:number = "squadronConsumablesCol ? squadronConsumablesCol.items.length : 0" (event "squadronConsumablesCol.evAdded") (event "squadronConsumablesCol.evRemoved"))
+	)
+
+	(controller $Repeat renderer='FighterAssistantRenderer' layout=true
+    (bind count "squadronConsumablesColCount")
+		(args "squadronConsumablesCol" "$index")
+	)
+)
+
+(def element FighterAssistantRenderer(_squadronConsumablesCol:gfx, _consumableIndex:number)
+	(scope
+
+		#Consumable Entity
+		(var consumableEntity:gfx = "_squadronConsumablesCol.items[_consumableIndex]")
+		(var battleConsumable:gfx = "consumableEntity.battleConsumable")
+		#(var consumableName:str = "battleConsumable.ident")
+		(var consumableType:number = "battleConsumable.type")
+		(var consumableNum:number = "battleConsumable.consumeNum" (event "battleConsumable.evConsumeNumChanged"))
+		(var consumableState:number = "battleConsumable.state" (event "battleConsumable.evStateChanged"))
+
+		(var isVisibleMod:bool = "consumableType == 21")
+
+		#Countdown
+		(var timerEntity:gfx = "$datahub.getSingleEntity(CC.timer)")
+		(var countdown:gfx = "consumableEntity && consumableEntity.hasComponent(CC.countDown) ? consumableEntity.countDown : null" (event "consumableEntity.evAdded") (event "consumableEntity.evRemoved"))
+		(var remainTime:str = "countdown ? countdown.endTime - timerEntity.timer.currentTime : 0" (event "timerEntity.timer.evFrequent") (event "countdown.evEndTimeChanged"))
+		(var remainTimeStr:str = "floor(remainTime)")
+	)
+
+	(block
+		(style (flow = "horizontal"))
+		(bind visible "isVisibleMod")
+
+		(element FighterAssistantRemainTimeRenderer "remainTimeStr" "consumableState")
+
+		(block
+			(tf
+				(class $TextFighterAssistant)
+				(style (textColor = "SC.Ui_styles.SERVICE_COLORS.WHITE"))
+				(bind visible "consumableState != 3")
+				(bind text "'/' + consumableNum")
+			)
+		)
+	)
+)
+
+(def element FighterAssistantRemainTimeRenderer(_remainTimeStr:str, _consumableState:number)
+
+	#Consumable State: READY
+	(tf
+		(class $TextFighterAssistant)
+		(style (textColor = "SC.Ui_styles.SERVICE_COLORS.WHITE"))
+		(bind visible "_consumableState == 0")
+		(bind text "'RDY'")
+	)
+	#Consumable State: AT_WORK
+	(tf
+		(class $TextFighterAssistant)
+		(style (textColor = "SC.Ui_styles.SERVICE_COLORS.GREEN"))
+		(bind visible "_consumableState == 1")
+		(bind text "_remainTimeStr + 's'")
+	)
+	#Consumable State: RELOAD
+	(tf
+		(class $TextFighterAssistant)
+		(style (textColor = "SC.Ui_styles.SERVICE_COLORS.YELLOW"))
+		(bind visible "_consumableState == 2")
+		(bind text "_remainTimeStr + 's'")
+	)
+	#Consumable State: NO_AMMO
+	(tf
+		(class $TextFighterAssistant)
+		(style (textColor = "SC.Ui_styles.SERVICE_COLORS.RED"))
+		(bind visible "_consumableState == 3")
+		(bind text "'Empty'")
+	)
+	#Consumable State: PREPARATION
+	(tf
+		(class $TextFighterAssistant)
+		(style (textColor = "SC.Ui_styles.SERVICE_COLORS.WHITE"))
+		(bind visible "_consumableState == 4")
+		(bind text "'--'")
+	)
+)
+
+(def css $TextFighterAssistant()
+  (extends $TextDefaultBold)
+  (textAlign = "center")
+  (fontSize  = 12)
+  (filters
+    (dropShadow
+      (distance=0)
+      (angle=0)
+      (color=0x000000)
+      (alpha=0.7)
+      (blurX=2.0)
+      (blurY=2.0)
+      (strength=1.0)
+      (quality=1)
+    )
+  )
+)

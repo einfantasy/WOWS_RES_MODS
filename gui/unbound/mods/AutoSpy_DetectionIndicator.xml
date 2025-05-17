@@ -1,0 +1,52 @@
+<?xml version="1.0" ?>
+<ui>
+	<block className="RightPanelInfo">
+		<bind name="collectionDH" value="CC.userPrefs; 'userPrefsCollection'"/>
+		<bind name="entityDH" value="'userPrefsEntity'; userPrefsCollection[0].id"/>
+		<bind name="watchDH" value="'userPrefs'; ['userPrefsEntity.userPrefs.evUserPrefsChanged']; userPrefsEntity.userPrefs.userPrefs"/>
+		<bind name="watch" value="'diAllyEnabled'; (userPrefs.elementsGroupExpand.detectionIndicator_allyEnabled == null) ? true : userPrefs.elementsGroupExpand.detectionIndicator_allyEnabled"/>
+		<bind name="watch" value="'diEnemyEnabled'; (userPrefs.elementsGroupExpand.detectionIndicator_enemyEnabled == null) ? false : userPrefs.elementsGroupExpand.detectionIndicator_enemyEnabled"/>
+		<block>
+			<style>
+				<marginBottom value="24px"/>
+			</style>
+			<block type="text">
+				<styleClass value="$TextDefaultBoldNM"/>
+				<bind name="text" value="toUpperCase(tr('IDS_HELP_DETECTION_INDICATORS'))"/>
+			</block>
+			<block>
+				<style>
+					<marginTop value="12px"/>
+					<marginBottom value="4px"/>
+				</style>
+				<bind name="instance" value="'CheckBox'; {_isChecked: diAllyEnabled, _label: 'IDS_ALLIES',
+								_action: 'setUserPref', _actionParams: {value: !diAllyEnabled, name: 'elementsGroupExpand', subName: 'detectionIndicator_allyEnabled'}}"/>
+			</block>
+			<block>
+				<bind name="instance" value="'CheckBox'; {_isChecked: diEnemyEnabled, _label: 'IDS_ENEMIES',
+								_action: 'setUserPref', _actionParams: {value: !diEnemyEnabled, name: 'elementsGroupExpand', subName: 'detectionIndicator_enemyEnabled'}}"/>
+			</block>
+		</block>
+		<bind name="appear" value="_isBattleStats ? null : 'addedToStage'; 0.15; 0.1; {alpha: 0, top: 10}; {alpha: 1, top: 0}"/>
+		<bind name="name" value="'RightPanelInfo'"/>
+		<style>
+			<width value="100%"/>
+		</style>
+		<block type="text">
+			<style>
+				<width value="100%"/>
+			</style>
+			<styleClass value="$TextDefaultBoldNM"/>
+			<bind name="text" value="toUpperCase(tr(_headerText))"/>
+		</block>
+		<block type="text">
+			<style>
+				<width value="100%"/>
+				<marginTop value="15px"/>
+				<leading value="1"/>
+			</style>
+			<styleClass value="$TextDefault17NM"/>
+			<bind name="text" value="tr(_infoText)"/>
+		</block>
+	</block>
+</ui>

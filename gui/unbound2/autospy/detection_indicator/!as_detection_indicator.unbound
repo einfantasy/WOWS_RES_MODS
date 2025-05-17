@@ -1,0 +1,148 @@
+#
+# Detection indicator by AutoSpy
+#
+
+(def constant MOD_DI_PARAMS {
+	path: 'url:..\unbound2\autospy\detection_indicator\icon.png', # icon path
+	scale: 0.65, # icon scale
+	offsetX: 0, # left offset
+	offsetY: -3, # top offset
+	wasDetectedAlpha: 0.5, # 'was detected status' icon alpha
+
+	allyEnabled: true,
+	enemyEnabled: false
+	}
+)
+
+(def macro MOD_DI_GET_UPREFS (isActive:expression=true)
+	(var _userPrefsMouse:gfx = "$datahub.getSingleComponent(CC.mouse)")
+	(var _userPrefsActive:bool = "_userPrefsMouse.active" (event "_userPrefsMouse.evActiveChanged"))
+	(var userPrefsEntity:gfx = "$datahub.getSingleEntity(CC.userPrefs)")
+	(var _uPrefs:gfx = "userPrefsEntity.userPrefs.userPrefs" (event "userPrefsEntity.userPrefs.evUserPrefsChanged"))
+	(var _uPrefsBool:bool = "_uPrefs.elementsGroupExpand" watch=false)
+	(var uPrefsBool:dict = "_uPrefsBool ? _uPrefs.elementsGroupExpand : {}" watch=false)
+	(bind uPrefsBool "_uPrefs.elementsGroupExpand" watch=false init=false (bind enabled "_userPrefsActive && isActive") (bind trigger "_uPrefs.elementsGroupExpand"))
+)
+
+(def macro MOD_DI_VAR_BOOL (name:expression, key:expression, defaults:expression={})
+	(var name = "name" type=bool value="toString(uPrefsBool[key + '_' + name]) != null ? uPrefsBool[key + '_' + name] : defaults[name]")
+)
+
+# orig battle\markers\ship_marker
+(def element ShipMarkerIconItem (_markerEntity:gfx, _rotation:number) layout=true
+	(scope
+		(var markerEntity:gfx = "$datahub.getEntity(_entityId)")
+
+		(macro GET_MARKER_ENTITY_COMPONENT 'vehicle')
+		(macro GET_MARKER_ENTITY_COMPONENT 'relation')
+
+		(var relationValue:number = "relationComponent ? relationComponent.value : -1" (event "relationComponent.evChanged"))
+		(var isSelf:bool = "relationValue == SC.Battle.PLAYER_RELATION.SELF")
+
+		(var cameraEntity:gfx = "$datahub.getSingleEntity(CC.camera)")
+		(var isTactical:bool = "cameraEntity.camera.isTactical" (event "cameraEntity.camera.evTacticalStateChanged"))
+
+		(macro IS_ON_PLANE)
+
+		(var hasDiplomacyComponent:bool = "_markerEntity.hasComponent(CC.diplomacyRelation)")
+
+		(var iconHeight:number = "hasDiplomacyComponent ? DIPLOMACY_TEAM_ICON_SIZE.HEIGHT : SHIP_ICON_SIZE.HEIGHT")
+		(var iconWidth:number = "hasDiplomacyComponent ? DIPLOMACY_TEAM_ICON_SIZE.WIDTH : SHIP_ICON_SIZE.WIDTH")
+
+		(var useDiplomacyIcon:bool = "hasDiplomacyComponent && !(isSelf)")
+
+		(var addRotation:number = "(!(useDiplomacyIcon) && isTactical) ? (90 * (relationValue == SC.Battle.PLAYER_RELATION.ENEMY ? 1 : -1)) : 0")
+
+		(var colorOffset:number = "0" watch=false)
+		(controller $Animation
+			(bindcall play	duration=0.15
+							from={colorOffset: 0}
+							to={colorOffset: 160}
+							action="killAll"
+							(event "vehicleComponent.evHit")
+			)
+			(bindcall play	duration=0.45
+							delay=0.15
+							from={colorOffset: 160}
+							to={colorOffset: 0}
+							(event "vehicleComponent.evHit")
+			)
+		)
+
+		(var isDetected:bool = "vehicleComponent.visibilityFlags > 0" (event "vehicleComponent.evVisibilityFlagsChanged"))
+		(var wasDetected:bool=false)
+		(bind wasDetected "true" (bind enabled "!(wasDetected) && isDetected") (event "vehicleComponent.evVisibilityFlagsChanged"))
+
+		(macro MOD_DI_GET_UPREFS)
+		(macro MOD_DI_VAR_BOOL name = "'allyEnabled'" key = "'detectionIndicator'" defaults = "MOD_DI_PARAMS")
+		(macro MOD_DI_VAR_BOOL name = "'enemyEnabled'" key = "'detectionIndicator'" defaults = "MOD_DI_PARAMS")
+	)
+
+	(style
+		(flow = "horizontal")
+		(bind width "iconWidth")
+		(bind height "iconHeight")
+		(align = "middle")
+	)
+
+	(block
+		(class $WorldMarkerItemMargins)
+
+		(class $Fullsize)
+
+		(style (align = "center|middle"))
+
+		(block
+			(style
+				(width=0px) (height=0px)
+				(align = "center|middle")
+				(bind rotation "_rotation + addRotation")
+			)
+
+			(controller $Instance renderer='ShipMarkerIconSimple'
+				(args "_markerEntity")
+				(bind enabled "!(useDiplomacyIcon) && !(isTactical && isSelf && !(isOnPlane))")
+				(exprs
+					(style
+						(width = "SHIP_ICON_SIZE.WIDTH") (height = "SHIP_ICON_SIZE.HEIGHT")
+					)
+				)
+			)
+
+			(controller $Instance renderer='ShipMarkerIconOwnTactical'
+				(args "_markerEntity")
+				(bind enabled "!(useDiplomacyIcon) && isTactical && isSelf && !(isOnPlane)")
+			)
+
+			(controller $Instance renderer='DiplomacyShipTeamIcon'
+				(args "_markerEntity")
+				(bind enabled "useDiplomacyIcon && !(isTactical)")
+			)
+
+			(controller $Instance renderer='DiplomacyMapMarkerShipIcon'
+				(args "_markerEntity")
+				(bind enabled "useDiplomacyIcon && isTactical")
+			)
+
+			(bind colorTransform "{redOffset: colorOffset, greenOffset: colorOffset, blueOffset: colorOffset}")
+		)
+	)
+
+	# detection icon
+	(block
+		(bind visible "((relationValue == SC.Battle.PLAYER_RELATION.ENEMY) && enemyEnabled) || ((relationValue == SC.Battle.PLAYER_RELATION.ALLY) && allyEnabled)")
+
+		(style
+			(bind alpha "isDetected ? 1 : wasDetected ? MOD_DI_PARAMS.wasDetectedAlpha : 0")
+			(width=1px)
+			(height=100%)
+			(marginLeft = "MOD_DI_PARAMS.offsetX")
+			(marginTop = "MOD_DI_PARAMS.offsetY")
+			(backgroundImage = "MOD_DI_PARAMS.path")
+		)
+
+		(macro BIND_FAIR_SCALE "MOD_DI_PARAMS.scale - (isTactical ? 0.3 : 0)")
+
+		(bind colorTransform "isDetected ? {} : {redMultiplier:0,greenMultiplier:0,blueMultiplier:0,alphaMultiplier:1,redOffset:51,greenOffset:51,blueOffset:51,alphaOffset:0}")
+	)
+)

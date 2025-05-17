@@ -1,0 +1,83 @@
+<code>
+
+	<!-- INSTALLATION INSTRUCTIONS -->
+
+	<target_File file="gui/uss_settings.xml">
+		<!-- Insert code <swffile> and <xmlfile> from <insert> in block <mods> -->
+		<root_Node>
+			<mods>
+				<insert>
+					<xmlfile>../unbound/mods/AutoSpy_DetectionIndicator.xml</xmlfile>
+					<attrs>
+						<do_if_not_exist tag="xmlfile" text="AutoSpy_DetectionIndicator.xml"/>
+					</attrs>
+				</insert>
+				<insert>
+					<swffile>../unbound/mods/AutoSpy_DetectionIndicator.swf</swffile>
+					<attrs>
+						<do_if_not_exist tag="swffile" text="AutoSpy_DetectionIndicator.swf"/>
+					</attrs>
+				</insert>
+			</mods>
+		</root_Node>
+	</target_File>
+
+	<!-- Create empty file gui/unbound/mods/AutoSpy_DetectionIndicator.xml -->
+	<target_File file="gui/unbound/mods/AutoSpy_DetectionIndicator.xml" clear="true">
+		<root_Node>
+			<!-- Copy origin blocks from markup.xml -->
+			<copy_past>
+				<copy>
+					<block className="RightPanelInfo"/>
+				</copy>
+				<attrs>
+					<copy_from file="gui/unbound/markup.xml" orig="true"/>
+				</attrs>
+			</copy_past>
+
+			<!-- Insert in top of block className RightPanelInfo -->
+			<block className="RightPanelInfo">
+				<insert insert="top">
+
+					<bind name="collectionDH" value="CC.userPrefs; 'userPrefsCollection'"/>
+					<bind name="entityDH" value="'userPrefsEntity'; userPrefsCollection[0].id"/>
+					<bind name="watchDH" value="'userPrefs'; ['userPrefsEntity.userPrefs.evUserPrefsChanged']; userPrefsEntity.userPrefs.userPrefs"/>
+					<bind name="watch" value="'diAllyEnabled'; (userPrefs.elementsGroupExpand.detectionIndicator_allyEnabled == null) ? true : userPrefs.elementsGroupExpand.detectionIndicator_allyEnabled"/>
+					<bind name="watch" value="'diEnemyEnabled'; (userPrefs.elementsGroupExpand.detectionIndicator_enemyEnabled == null) ? false : userPrefs.elementsGroupExpand.detectionIndicator_enemyEnabled"/>
+
+					<block>
+						<style>
+							<marginBottom value="24px"/>
+						</style>
+
+						<block type="text">
+							<styleClass value="$TextDefaultBoldNM"/>
+							<bind name="text" value="toUpperCase(tr('IDS_HELP_DETECTION_INDICATORS'))"/>
+						</block>
+						<block>
+							<style>
+								<marginTop value="12px"/>
+								<marginBottom value="4px"/>
+							</style>
+							<bind name="instance" value="'CheckBox'; {_isChecked: diAllyEnabled, _label: 'IDS_ALLIES',
+								_action: 'setUserPref', _actionParams: {value: !diAllyEnabled, name: 'elementsGroupExpand', subName: 'detectionIndicator_allyEnabled'}}"/>
+						</block>
+						<block>
+							<bind name="instance" value="'CheckBox'; {_isChecked: diEnemyEnabled, _label: 'IDS_ENEMIES',
+								_action: 'setUserPref', _actionParams: {value: !diEnemyEnabled, name: 'elementsGroupExpand', subName: 'detectionIndicator_enemyEnabled'}}"/>
+						</block>
+					</block>
+
+				</insert>
+			</block>
+
+		</root_Node>
+	</target_File>
+
+	<!-- END OF INSTALLATION INSTRUCTIONS -->
+
+	<!-- ONLY FOR MODSAPI MODS INSTALLER! DO NOT EDIT OR DELETE INSTRUCTION BELLOW! -->
+	<!-- Skip installation if the mod is already installed -->
+	<check name="AutoSpy_DetectionIndicator" version="23.03.22.1738"/>
+
+</code>

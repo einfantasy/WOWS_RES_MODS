@@ -1,0 +1,17 @@
+(def element WorldAttentionMarker (_markerEntity:gfx) layout=true
+	(scope
+		(var cameraComponent:gfx = "$datahub.getSingleComponent(CC.camera)")
+		(var isTactical:bool = "cameraComponent.isTactical" (event "cameraComponent.evTacticalStateChanged"))
+		#mod
+		(var altVision:bool = "cameraComponent.altVision" (event "cameraComponent.evAltVisionChanged"))
+		#
+	)
+
+	#mod
+	(element DistanceItem "_markerEntity"
+		(style (position  = "absolute") (hcenter = 0px) (vcenter = -13px))
+		(bind visible "altVision")
+	)
+	#
+	(macro AttentionMarker _markerEntity="_markerEntity" _markerType='world')
+)
