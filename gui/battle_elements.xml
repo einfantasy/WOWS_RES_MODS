@@ -60,7 +60,16 @@
 		<element class="lesta.unbound2.UbElement" elementName="INT_Intuitions" name="unbound2Intuitions">
 			<properties hitTest="false"/>
 		</element>
+		<element class="lesta.unbound2.UbElement" elementName="TTaroTeamPanels" name="unbound2TTaroTeamPanels">
+			<properties hitTest="true"/>
+		</element>
 		<element autoPerfTestGroup="header" class="lesta.unbound2.UbElement" elementName="MainHud" name="mainHud" url="main_hud.swf,central_feedback.swf,minimap.swf">
+			<properties hitTest="true"/>
+		</element>
+		<element class="lesta.unbound2.UbElement" elementName="TTaroMinimap" name="unbound2TTaroMinimap">
+			<properties hitTest="true"/>
+		</element>
+		<element class="lesta.unbound2.UbElement" elementName="BuildViewer" name="unbound2BuildViewer" url="battle_stats.swf">
 			<properties hitTest="true"/>
 		</element>
 		<element class="lesta.unbound2.UbElement" elementName="ModuleStateViewer" name="unbound2ModuleStateViewer">

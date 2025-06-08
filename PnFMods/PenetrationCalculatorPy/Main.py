@@ -7,7 +7,7 @@ try:
 except:
     pass
 
-from math import cos, radians, degrees
+from math import cos, radians, degrees, floor
 
 INF = float('inf')
 INVALID_VALUE = -1
@@ -40,6 +40,7 @@ class PenetrationCalculator(object):
         self.uiID = None
         self.isSquadronMode = False
         self.modifiers = None
+        self.hoopRanging = None
         self._addEvents()
 
     def _addEvents(self):
@@ -82,18 +83,18 @@ class PenetrationCalculator(object):
             self.isSquadronMode = False
             self.ammo = None
             self.modifiers = None
+            self.hoopRanging = None
             utils.logInfo(LOGGER_NAME, 'Stopped update')
         except:
             #utils.logInfo(LOGGER_NAME, 'Error while trying to stop update')
             pass
 
-    def getPenetration(self, ammo):
+    def getPenetration(self, ammo, impactSpeed):
         if ammo.ammoType == 'HE':
             return self._calcHEPenetration(ammo)
         elif ammo.ammoType == 'CS':
             return int(ammo.alphaPiercingCS)
         elif ammo.ammoType == 'AP':
-            impactSpeed = self._getImpactSpeed(ammo)
             return self._calcAPPenetration(ammo, impactSpeed)
         #other ammunitions
         return INVALID_VALUE
@@ -112,7 +113,8 @@ class PenetrationCalculator(object):
         return int(ammo.alphaPiercingHE * penCoeff)
 
     def update(self):
-        if not battle.getSelfHoopRanging().isReady or self.ammo is None:
+        self.hoopRanging = battle.getSelfHoopRanging()
+        if (not self.isSquadronMode and not self.hoopRanging.isReady) or self.ammo is None:
             ui.updateUiElementData(self.uiID, {'penetration': INVALID_VALUE})
             return
         ui.updateUiElementData(self.uiID, self.getPenetratonData())
@@ -121,29 +123,36 @@ class PenetrationCalculator(object):
         ammo = self.ammo
         isAP = ammo.ammoType =='AP'
         isRicochetable = ammo.ammoType == 'CS' or isAP
-        impactAgnle = battle.getSelfHoopRanging().pitch
-        penetration = self.getPenetration(ammo)
+        impactAgnle = self.hoopRanging.pitch
+        impactSpeed = self.getImpactSpeed(ammo)
+        penetration = self.getPenetration(ammo, impactSpeed)
         return dict(
-            penetration = penetration,
-            startRicochet = ammo.bulletRicochetAt if isRicochetable else INVALID_VALUE,
-            alwaysRicochet = ammo.bulletAlwaysRicochetAt if isRicochetable else INVALID_VALUE,
-            detonatorDelay = ammo.bulletDetonator if isAP else INVALID_VALUE,
-            detonatorThreshold = ammo.bulletDetonatorThreshold if isAP else INVALID_VALUE,
-            impactAngle = degrees(impactAgnle) if not self.isSquadronMode else INVALID_VALUE,
-            apSkipData = self.__getAdditionalAPSkipData(ammo, penetration)
+            penetration         = penetration,
+            startRicochet       = ammo.bulletRicochetAt if isRicochetable else INVALID_VALUE,
+            alwaysRicochet      = ammo.bulletAlwaysRicochetAt if isRicochetable else INVALID_VALUE,
+            detonatorDelay      = ammo.bulletDetonator if isAP else INVALID_VALUE,
+            detonatorThreshold  = ammo.bulletDetonatorThreshold if isAP else INVALID_VALUE,
+            detonatorLength     = impactSpeed * ammo.bulletDetonator if isAP else INVALID_VALUE,
+            overmatch           = self._getOvermatch(ammo) if isRicochetable else INVALID_VALUE,
+            impactAngle         = degrees(impactAgnle) if not self.isSquadronMode else INVALID_VALUE,
+            apSkipData          = self.__getAdditionalAPSkipData(ammo, penetration),
         )
+    
+    def _getOvermatch(self, ammo):
+        return floor(ammo.bulletDiametr * 1000 / 14.3)
     
     def _getImpactAngle(self, ammo):
         normalizeAngle = radians(ammo.bulletCapNormalizeMaxAngle)
-        trajAngle = abs(battle.getSelfHoopRanging().pitch)
+        trajAngle = abs(self.hoopRanging.pitch)
         return max(0, trajAngle - normalizeAngle)
 
-    def _getImpactSpeed(self, ammo):
-        hoopRanging = battle.getSelfHoopRanging()
+    def getImpactSpeed(self, ammo):
+        if self.isSquadronMode:
+            return ammo.bulletSpeed
+        
+        hoopRanging = self.hoopRanging
         gunPos = hoopRanging.gunPos
         gunDir = hoopRanging.gunDir
-        if self.isSquadronMode:
-            return self.ammo.bulletSpeed
         if gunPos.y >= 0.001:
             impactSpeed = battle.getAmmoImpactSpeed(ammo, gunPos, gunDir)
             if impactSpeed is not None:

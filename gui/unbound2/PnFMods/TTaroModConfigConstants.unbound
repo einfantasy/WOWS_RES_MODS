@@ -371,6 +371,7 @@
             BV_PREFS.SCALE,
             BV_PREFS.DISABLE_DRAGDROP,
             BV_PREFS.RESET_POSITION,
+            BV_PREFS.DISPLAY_MODE,
             BV_PREFS.DISABLE_ALLY_BUILDS
         ]"
     },
@@ -970,28 +971,32 @@
     {
         sectionTitle: 'IDS_TT_TITLE_GENERAL',
         sectionElements: "[
-            TTChat_PREFS.STYLE_INDEX
+            TTChat_PREFS.EXPORT_CHAT,
+            TTChat_PREFS.DISABLE_DRAGDROP,
+            TTChat_PREFS.RESET_POSITION,
+            TTChat_PREFS.BOLD_FONT,
+            TTChat_PREFS.FONT_SIZE,
+            TTChat_PREFS.WIDTH_SCALE,
+            TTChat_PREFS.HEIGHT_SCALE
         ]"
     },
     {
         sectionTitle: 'IDS_TT_TITLE_PLAYER_INFO',
         sectionElements: "[
-            TTChat_PREFS.PLAYER_NAME_VISIBLE,
-            TTChat_PREFS.CLAN_NAME_VISIBLE
+            TTChat_PREFS.PLAYER_INFO.BOLD_FONT,
+            TTChat_PREFS.PLAYER_INFO.FONT_SIZE,
+            TTChat_PREFS.PLAYER_INFO.NAME,
+            TTChat_PREFS.PLAYER_INFO.CLAN_TAG
         ]"
     },
     {
         sectionTitle: 'IDS_TT_TITLE_SHIP_INFO',
         sectionElements: "[
-            TTChat_PREFS.SHIP_NAME_VISIBLE,
-            TTChat_PREFS.SHIP_ICON_VISIBLE,
-            TTChat_PREFS.SHIP_TIER_VISIBLE
-        ]"
-    },
-    {
-        sectionTitle: 'IDS_TT_TITLE_TRANSLATIONS',
-        sectionElements: "[
-            TTChat_PREFS.TRANSLATION_LANG
+            TTChat_PREFS.SHIP_INFO.BOLD_FONT,
+            TTChat_PREFS.SHIP_INFO.FONT_SIZE,
+            TTChat_PREFS.SHIP_INFO.NAME,
+            TTChat_PREFS.SHIP_INFO.ICON,
+            TTChat_PREFS.SHIP_INFO.TIER
         ]"
     },
     {
@@ -1166,6 +1171,36 @@
     }
 ])
 
+(def constant TT_MOD_ADVSHIPSTATUS_CONFIGS [
+    {
+        sectionTitle: 'IDS_TT_TITLE_HEALTH_BAR',
+        sectionElements: "[
+            AdvSS_PREFS.HP_BAR.DISABLE_DRAGDROP,
+            AdvSS_PREFS.HP_BAR.RESET_POSITION,
+            AdvSS_PREFS.HP_BAR.SCALE,
+            AdvSS_PREFS.HP_BAR.TYPE
+        ]"
+    },
+    {
+        sectionTitle: 'IDS_TT_TITLE_TELEGRAPH',
+        sectionElements: "[
+            AdvSS_PREFS.TELEGRAPH.DISABLE_DRAGDROP,
+            AdvSS_PREFS.TELEGRAPH.RESET_POSITION,
+            AdvSS_PREFS.TELEGRAPH.SCALE,
+            AdvSS_PREFS.TELEGRAPH.ENABLE_ON_PLANE
+        ]"
+    },
+    {
+        sectionTitle: 'IDS_TT_TITLE_COMPASS',
+        sectionElements: "[
+            AdvSS_PREFS.COMPASS.DISABLE_DRAGDROP,
+            AdvSS_PREFS.COMPASS.RESET_POSITION,
+            AdvSS_PREFS.COMPASS.SCALE,
+            AdvSS_PREFS.COMPASS.COMPASS_ROSE
+        ]"
+    }
+])
+
 
 
 (def constant TT_MODS_CONFIG_LIST [
@@ -1189,6 +1224,7 @@
     {modName: 'Subs Highlight', modTag: 'SUBSHIGHLIGHT', configSections: "TT_MOD_SUBSHIGHLIGHT_CONFIGS", isInstalled: "TT_SUBSHIGHLIGHT_INSTALLED"},
     {modName: 'TeamHP', modTag: 'TEAMHP', configSections: "TT_MOD_TEAMHP_CONFIGS", isInstalled: "TT_TEAMHP_INSTALLED"},
     {modName: 'Battle Timer', modTag: 'BATTLETIMER', configSections: "TT_MOD_BATTLETIMER_CONFIGS", isInstalled: "TT_BATTLETIMER_INSTALLED"},
+    {modName: 'Adv Ship Status', modTag: 'ADVSHIPSTATUS', configSections: "TT_MOD_ADVSHIPSTATUS_CONFIGS", isInstalled: "TT_ADVSHIPSTATUS_INSTALLED"},
 ])
 
 (def constant TDRadar_PREFS {
@@ -1391,6 +1427,7 @@
     SCALE: {min: 0.5, max: 1.5, step: 0.1, renderer: "TT_CONFIG_RENDERERS.SLIDER", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_UI_SCALE', key: 'buildViewerScale', default: 1},
     DISABLE_DRAGDROP: {renderer: "TT_CONFIG_RENDERERS.SWITCH", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_DISABLE_DRAG_DROP', key: 'buildViewerDisableDragDrop', tooltipHint: 'IDS_TT_HINT_DISABLE_DRAG_DROP', default: false},
     RESET_POSITION: {min: 0, max: 0, step: 1, renderer: "TT_CONFIG_RENDERERS.BUTTON", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_DRAGDROP_RESET', key: '', tooltipHint: 'IDS_TT_HINT_DRAGDROP_RESET', default: 0, extraData: [{type: 'inputMapping.onAction', name: 'clearUserPref', args: {'name': 'chatBoxWidth', 'subName': 'buildViewer_positionX'}}, {type: 'inputMapping.onAction', name: 'clearUserPref', args: {'name': 'chatBoxWidth', 'subName': 'buildViewer_positionY'}}], divider: "bottom"},
+    DISPLAY_MODE: {min: 0, max: 0, step: 1, renderer: "TT_CONFIG_RENDERERS.DROPDOWN", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_DISPLAY_MODE', key: 'buildViewerDisplayMode', tooltipHint: 'IDS_TT_HINT_DISPLAY_MODE', default: 1, dropdownItems: ['IDS_TURN_OFF', 'IDS_TURN_ON', 'IDS_ALT_VISION_MODE_1'], dropdownType: 'KEY', extraData: {'IDS_ALT_VISION_MODE_1': 'CMD_ICONS'}, divider: "bottom"},
     DISABLE_ALLY_BUILDS: {renderer: "TT_CONFIG_RENDERERS.SWITCH", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_DISABLE_ALLY_BUILDS', key: 'buildViewerDisableAllyBuilds', default: false},
     BACKGROUND_ALPHA: {min: 0, max: 1, step: 0.1, renderer: "TT_CONFIG_RENDERERS.SLIDER", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_OPACITY', key: 'buildViewerBackgroundOpacity', default: 0.4},
 })
@@ -1771,13 +1808,26 @@
 })
 
 (def constant TTChat_PREFS {
-    STYLE_INDEX: {min: 0, max: 0, step: 1, renderer: "TT_CONFIG_RENDERERS.DROPDOWN", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_THEME', key: 'ttChatStyleIndex', default: 0, dropdownItems: ['Roslich', 'AutoSpy', 'TTaro']},
-    PLAYER_NAME_VISIBLE: {renderer: "TT_CONFIG_RENDERERS.SWITCH", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_PLAYER_NAME', key: 'ttChatPlayerNameVisible', default: true},
-    CLAN_NAME_VISIBLE: {renderer: "TT_CONFIG_RENDERERS.SWITCH", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_CLAN_NAME', key: 'ttChatClanNameVisible', default: true},
-    SHIP_NAME_VISIBLE: {renderer: "TT_CONFIG_RENDERERS.SWITCH", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_SHIP_NAME', key: 'ttChatShipNameVisible', default: true},
-    SHIP_ICON_VISIBLE: {renderer: "TT_CONFIG_RENDERERS.SWITCH", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_CLASS_ICON', key: 'ttChatShipClassIconVisible', default: true},
-    SHIP_TIER_VISIBLE: {renderer: "TT_CONFIG_RENDERERS.SWITCH", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_TIER', key: 'ttChatShipTierVisible', default: true},
-    TRANSLATION_LANG: {min: 0, max: 0, step: 1, renderer: "TT_CONFIG_RENDERERS.DROPDOWN", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_TARGET_LANGUAGE', key: 'ttChatTargetLanguage', default: 6, dropdownItems: ['Arabic', 'Bulgarian', 'Czech', 'Danish', 'German', 'Greek', 'English (British)', 'English (American)', 'Spanish', 'Estonian', 'Finnish', 'French', 'Hungarian', 'Indonesian', 'Italian', 'Japanese', 'Korean', 'Lithuanian', 'Latvian', 'Norwegian Bokmål', 'Dutch', 'Polish', 'Portuguese (Brazilian)', 'Portuguese', 'Romanian', 'Russian', 'Slovak', 'Slovenian', 'Swedish', 'Turkish', 'Ukranian', 'Chinese (Simplified)', 'Chinese (Traditional)']},
+    EXPORT_CHAT: {renderer: "TT_CONFIG_RENDERERS.SWITCH", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_EXPORT_CHAT', key: 'ttChatExportChat', tooltipHint: 'IDS_TT_HINT_EXPORT_CHAT', default: true, divider: "bottom"},
+    DISABLE_DRAGDROP: {renderer: "TT_CONFIG_RENDERERS.SWITCH", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_DISABLE_DRAG_DROP', key: 'ttChatDisableDragDrop', tooltipHint: 'IDS_TT_HINT_DISABLE_DRAG_DROP', default: true},
+    RESET_POSITION: {min: 0, max: 0, step: 1, renderer: "TT_CONFIG_RENDERERS.BUTTON", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_DRAGDROP_RESET', key: '', tooltipHint: 'IDS_TT_HINT_DRAGDROP_RESET', default: 0, extraData: [{type: 'inputMapping.onAction', name: 'clearUserPref', args: {'name': 'chatBoxWidth', 'subName': 'TTChat_positionX'}}, {type: 'inputMapping.onAction', name: 'clearUserPref', args: {'name': 'chatBoxWidth', 'subName': 'TTChat_positionY'}}], divider: "bottom"},
+    BOLD_FONT: {renderer: "TT_CONFIG_RENDERERS.SWITCH", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_BOLD_FONT', key: 'ttChatChatBoldFont', default: false},
+    FONT_SIZE: {min: 10, max: 20, step: 1, renderer: "TT_CONFIG_RENDERERS.SLIDER", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_FONT_SIZE', key: 'ttChatChatFontSize', default: 15, round: 0, divider: "bottom"},
+    WIDTH_SCALE: {min: 0.5, max: 2.5, step: 0.1, renderer: "TT_CONFIG_RENDERERS.SLIDER", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_WIDTH', key: 'ttChatWidthScale', default: 1},
+    HEIGHT_SCALE: {min: 0.5, max: 2.5, step: 0.1, renderer: "TT_CONFIG_RENDERERS.SLIDER", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_HEIGHT', key: 'ttChatHeightScale', default: 1},
+    PLAYER_INFO: {
+        BOLD_FONT: {renderer: "TT_CONFIG_RENDERERS.SWITCH", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_BOLD_FONT', key: 'ttChatPlayerInfoBoldFont', default: true},
+        FONT_SIZE: {min: 10, max: 20, step: 1, renderer: "TT_CONFIG_RENDERERS.SLIDER", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_FONT_SIZE', key: 'ttChatPlayerInfoFontSize', default: 15, round: 0, divider: "bottom"},
+        NAME: {renderer: "TT_CONFIG_RENDERERS.SWITCH", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_PLAYER_NAME', key: 'ttChatPlayerNameVisible', default: true},
+        CLAN_TAG: {renderer: "TT_CONFIG_RENDERERS.SWITCH", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_CLAN_NAME', key: 'ttChatClanNameVisible', default: true, parentPrefs: [{pref: "TTChat_PREFS.PLAYER_INFO.NAME", validValues: [1]}]},
+    },
+    SHIP_INFO: {
+        BOLD_FONT: {renderer: "TT_CONFIG_RENDERERS.SWITCH", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_BOLD_FONT', key: 'ttChatShipInfoBoldFont', default: true},
+        FONT_SIZE: {min: 10, max: 20, step: 1, renderer: "TT_CONFIG_RENDERERS.SLIDER", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_FONT_SIZE', key: 'ttChatShipInfoFontSize', default: 12, round: 0, divider: "bottom"},
+        NAME: {renderer: "TT_CONFIG_RENDERERS.SWITCH", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_SHIP_NAME', key: 'ttChatShipNameVisible', default: true},
+        ICON: {renderer: "TT_CONFIG_RENDERERS.SWITCH", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_CLASS_ICON', key: 'ttChatShipClassIconVisible', default: true},
+        TIER: {renderer: "TT_CONFIG_RENDERERS.SWITCH", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_TIER', key: 'ttChatShipTierVisible', default: true},
+    },
     ENEMY_CHATS_VISIBLE: {renderer: "TT_CONFIG_RENDERERS.SWITCH", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_PLAYER_CHATS', key: 'ttChatEnemyChatsVisible', default: true, divider: "bottom"},
     ENEMY_ACHIEVEMENTS_VISIBLE: {renderer: "TT_CONFIG_RENDERERS.SWITCH", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_ACHIEVEMENT_CHATS', key: 'ttChatEnemyAchievementsVisible', default: true, divider: "bottom"},
     ENEMY_WELL_DONE_VISIBLE: {renderer: "TT_CONFIG_RENDERERS.SWITCH", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_WELL_DONE_CHATS', key: 'ttChatEnemyWellDoneVisible', default: true},
@@ -1883,6 +1933,27 @@
     BACKGROUND: {
         DISPLAY_MODE: {min: 0, max: 0, step: 1, renderer: "TT_CONFIG_RENDERERS.DROPDOWN", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_DISPLAY_MODE', key: 'advBattleTimerBackgroundDisplayMode', tooltipHint: 'IDS_TT_HINT_DISPLAY_MODE', default: 0, dropdownItems: ['IDS_TURN_OFF', 'IDS_TURN_ON', 'IDS_ALT_VISION_MODE_1'], dropdownType: 'KEY', extraData: {'IDS_ALT_VISION_MODE_1': 'CMD_ICONS'}},
         ALPHA: {min: 0.1, max: 1, step: 0.1, renderer: "TT_CONFIG_RENDERERS.SLIDER", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_OPACITY', key: 'advBattleTimerBackgroundOpacity', default: 0.4, parentPrefs: [{pref: "AdvBT_PREFS.BACKGROUND.DISPLAY_MODE", validValues: "[AdvBT_DISPLAY_MODES.ENABLE, AdvBT_DISPLAY_MODES.ADAPTIVE]"}]},
+    },
+})
+
+(def constant AdvSS_PREFS {
+    HP_BAR: {
+        DISABLE_DRAGDROP: {renderer: "TT_CONFIG_RENDERERS.SWITCH", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_DISABLE_DRAG_DROP', key: 'advSSHealthBarDisableDragDrop', tooltipHint: 'IDS_TT_HINT_DISABLE_DRAG_DROP', default: true},
+        RESET_POSITION: {min: 0, max: 0, step: 1, renderer: "TT_CONFIG_RENDERERS.BUTTON", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_DRAGDROP_RESET', key: '', tooltipHint: 'IDS_TT_HINT_DRAGDROP_RESET', default: 0, extraData: [{type: 'inputMapping.onAction', name: 'clearUserPref', args: {'name': 'chatBoxWidth', 'subName': 'AdvSSHealthBar_positionX'}}, {type: 'inputMapping.onAction', name: 'clearUserPref', args: {'name': 'chatBoxWidth', 'subName': 'AdvSSHealthBar_positionY'}}], divider: "bottom"},
+        SCALE: {min: 0.5, max: 1.5, step: 0.1, renderer: "TT_CONFIG_RENDERERS.SLIDER", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_UI_SCALE', key: 'advSSHealthBarScale', default: 1},
+        TYPE: {min: 0, max: 0, step: 1, renderer: "TT_CONFIG_RENDERERS.DROPDOWN", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_HP_BAR_SHAPE', key: 'advSSHealthBarType', default: 0, dropdownItems: ['IDS_TT_SHIP_CONTOUR', 'IDS_TT_SIMPLE_BAR'], dropdownType: 'CUSTOM_TEXT'},
+    },
+    TELEGRAPH: {
+        DISABLE_DRAGDROP: {renderer: "TT_CONFIG_RENDERERS.SWITCH", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_DISABLE_DRAG_DROP', key: 'advSSTelegraphDisableDragDrop', tooltipHint: 'IDS_TT_HINT_DISABLE_DRAG_DROP', default: true},
+        RESET_POSITION: {min: 0, max: 0, step: 1, renderer: "TT_CONFIG_RENDERERS.BUTTON", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_DRAGDROP_RESET', key: '', tooltipHint: 'IDS_TT_HINT_DRAGDROP_RESET', default: 0, extraData: [{type: 'inputMapping.onAction', name: 'clearUserPref', args: {'name': 'chatBoxWidth', 'subName': 'AdvSSTelegraph_positionX'}}, {type: 'inputMapping.onAction', name: 'clearUserPref', args: {'name': 'chatBoxWidth', 'subName': 'AdvSSTelegraph_positionY'}}], divider: "bottom"},
+        SCALE: {min: 0.5, max: 1.5, step: 0.1, renderer: "TT_CONFIG_RENDERERS.SLIDER", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_UI_SCALE', key: 'advSSTelegraphScale', default: 1},
+        ENABLE_ON_PLANE: {renderer: "TT_CONFIG_RENDERERS.SWITCH", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_ENABLE_TELEGRAPH_ON_PLANE', key: 'advSSTelegraphEnableOnCv', default: true},
+    },
+    COMPASS: {
+        DISABLE_DRAGDROP: {renderer: "TT_CONFIG_RENDERERS.SWITCH", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_DISABLE_DRAG_DROP', key: 'advSSCompassDisableDragDrop', tooltipHint: 'IDS_TT_HINT_DISABLE_DRAG_DROP', default: true},
+        RESET_POSITION: {min: 0, max: 0, step: 1, renderer: "TT_CONFIG_RENDERERS.BUTTON", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_DRAGDROP_RESET', key: '', tooltipHint: 'IDS_TT_HINT_DRAGDROP_RESET', default: 0, extraData: [{type: 'inputMapping.onAction', name: 'clearUserPref', args: {'name': 'chatBoxWidth', 'subName': 'AdvSSCompass_positionX'}}, {type: 'inputMapping.onAction', name: 'clearUserPref', args: {'name': 'chatBoxWidth', 'subName': 'AdvSSCompass_positionY'}}], divider: "bottom"},
+        SCALE: {min: 0.5, max: 1.5, step: 0.1, renderer: "TT_CONFIG_RENDERERS.SLIDER", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_UI_SCALE', key: 'advSSCompassScale', default: 1},
+        COMPASS_ROSE: {renderer: "TT_CONFIG_RENDERERS.SWITCH", titleColor: "SC.Ui_styles.SERVICE_COLORS.WHITE", configTitle: 'IDS_TT_COMPASS_ROSE', key: 'advSSCompassRoseVisible', default: true},
     },
 })
 

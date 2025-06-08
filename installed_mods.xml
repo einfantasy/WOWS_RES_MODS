@@ -10,4 +10,7 @@
 	<mod installer="4.3.1" name="TwoDimentionalRadio" version="1.0.0"/>
 	<mod installer="4.3.1" name="RegenAssistantUb2" version="2.1.0"/>
 	<mod installer="4.3.1" name="ModuleStateViewer" version="1.1.0"/>
+	<mod installer="4.3.1" name="BuildViewer" version="1.1.0"/>
+	<mod installer="4.3.1" name="TTaroMinimap" version="1.1.0"/>
+	<mod installer="4.3.1" name="TTaroTeamPanels" version="1.0.0"/>
 </data>
