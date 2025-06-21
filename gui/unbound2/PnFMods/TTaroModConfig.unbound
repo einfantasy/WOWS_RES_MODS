@@ -1,4 +1,6 @@
 (def constant TT_ELEMENT_NAME "'ttaroModConfig'")
+(def constant TT_INVALID_TRANSLATION 'Invalid Translation')
+
 (def constant TT_CONFIG_WINDOW_WIDTH 480px)
 (def constant TT_CONFIG_SECTION_MARGIN 20px)
 
@@ -19,6 +21,7 @@
 	SLIDER				: 'TT_SliderOptionElement',
 	DROPDOWN			: 'TT_DropdownOptionElement',
 	BUTTON				: 'TT_ButtonOptionElement',
+	SUBPREFS			: 'TT_SubPrefsOptionElement',
 
 	MINIMAP_SWITCH		: 'TT_MinimapSwitchOptionElement',
 	MINIMAP_SLIDER		: 'TT_MinimapSliderOptionElement',
@@ -54,6 +57,12 @@
 	},
 })
 
+(def constant TT_SUBPREFS_RENDERERS {
+	SUBPREFS_SHIP_CLASS	: 'TT_SubPrefsTitleShipClassRenderer',
+
+	DEFAULT				: 'TT_SubPrefsTitleShipClassRenderer',
+})
+
 (def element TTaroModConfig() layout=true
 	(scope
 		(var defaultPos:dict = "{'positionX': 200, 'positionY': 0}")
@@ -83,7 +92,7 @@
 		(var mouse:gfx = "$datahub.getSingleComponent(CC.mouse)")
 		(var isMouseActive:bool = "mouse.active" (event "mouse.evActiveChanged"))
 
-		(macro TT_GET_UPREFS)
+		(macro TT_GET_USERPREF)
 
 		(event evItemChooserOpened)
 		(event evItemChooserClosed)
@@ -121,6 +130,9 @@
 		(bind selectedIndex "$event.index" init=false (event "evTabClicked"))
 
 		(var languageOptions:dict = "{key: TT_ELEMENT_NAME + 'Language', dropdownItems: TT_CONFIG_LANGUAGES, default: 0}")
+
+		(macro TT_GET_LANGUAGE_INDEX)
+		(macro TT_GET_TRANSLATION _varName="'noModSelectedText'" _key="'IDS_TT_SELECT_MOD_TO_CONFIGURE'")
 	)
 
 	(style 
@@ -130,7 +142,7 @@
 
 	(element TT_BackgroundElement)
 
-	#Tab Buttons
+	# Tab Buttons
 	(block
 		(style
 			(align = "middle|center")
@@ -159,15 +171,33 @@
 		)
 	)
 
-	#Config Elements
-	#DO NOT USE PEPEAT!: IT freezes the screen as the number of elements increases
-	#(element TT_ModConfigsElement "TT_MODS_CONFIG_LIST[selectedIndex]" _userPrefsNum="_userPrefsNum")
+	# Config Elements
+	# DO NOT USE PEPEAT!: IT freezes the screen as the number of elements increases
 	(controller $Instance (renderer='TT_ModConfigsElement')
 		(bind enabled "selectedIndex >= 0")
 		(bindcall recreate (bind trigger "selectedIndex"))
 		(args
 			_modConfigsData = "TT_MODS_CONFIG_LIST[selectedIndex]"
 			_userPrefsNum   = "_userPrefsNum"
+		)
+	)
+	
+	(block
+		(bind visible "selectedIndex < 0")
+		(style
+			(marginTop = "TT_CONFIG_SECTION_MARGIN")
+			(marginBottom = "TT_CONFIG_SECTION_MARGIN")
+			(width = 100%)
+			(align = "middle|center")
+		)
+		(element TT_HorizontalDivider _margin=5px _alpha=2 _width=90%)
+		(tf
+			(style
+				(marginTop = 5px)
+				(alpha = "TS")
+			)
+			(class $TextDefaultBold17NM)
+			(bind text "noModSelectedText")
 		)
 	)
 )
@@ -182,7 +212,6 @@
 		(align = "middle|center")
 		(width="TT_CONFIG_WINDOW_WIDTH")
 		(marginBottom = 15px)
-		#(maxHeight = 800)
 	)
 
 	(controller $Animation
@@ -261,9 +290,8 @@
 		(var isConfigurable:bool = "'isEnabled' in sectionSettings ? sectionSettings.isEnabled : true")
 		(var tooltipHint:str = "'tooltipHint' in sectionSettings ? sectionSettings.tooltipHint : ''")
 		(var tooltipExtraData:str = "'tooltipExtraData' in sectionSettings ? sectionSettings.tooltipExtraData : ''")
-		(var hintTranslations:array = "tooltipHint ? TT_CONFIG_LOCALIZATIONS[tooltipHint] : []")
-		(var isHintValidLocalization:bool = "hintTranslations.length > languageIndex && !isIn(hintTranslations[languageIndex], ['', ' '])")
-		(var localizedHintText:str = "isHintValidLocalization ? hintTranslations[languageIndex] : hintTranslations[0]")
+
+		(macro TT_GET_TRANSLATION _varName="'localizedHintText'" _key="tooltipHint")
 
 		# Expand
 		(macro MOUSE_HANDLER_SCOPE "'sectionExpand_'")
@@ -299,7 +327,7 @@
 		(backgroundColor = 0x01000000) # For hittest
 	)
 
-	(macro TT_HORIZONTAL_DEVIDER)
+	(element TT_HorizontalDivider _margin=5px _alpha=2)
 
 	# Title
 	(hblock
@@ -366,7 +394,9 @@
 		(var hasTopDivider:bool = "top == dividerPos")
 		(var hasBottomDivider:bool = "bottom == dividerPos")
 		
-		(event evChangeParentPref)
+		#(event evChangeParentPref)
+		(var eventName:str = "'evChangeParentPref' + _pref.configTitle")
+		(event name ="eventName")
 		(var parentPrefs:array = "'parentPrefs' in _pref ? _pref.parentPrefs : []")
 		(var parentPrefsCount:number = "parentPrefs.length")
 
@@ -375,7 +405,7 @@
 		(var enabledParentPrefCount:number = 0)
 		(var isOptionEnabled:bool = "parentPrefsCount == 0 ? true : enabledParentPrefCount > 0") # or condition. For and, use parentPrefsCount == enabledParentPrefsCount
 		
-		(bind enabledParentPrefCount "enabledParentPrefCount + $event.isEnabled" watch=false init=false (event "evChangeParentPref"))
+		(bind enabledParentPrefCount "enabledParentPrefCount + $event.isEnabled" watch=false init=false (event "$scope[eventName]"))
 
 		(var isConfigInitialized:bool = false)
 		(var targetAlpha:number = "_isConfigurable && isOptionEnabled ? 1.0 : 0.3")
@@ -393,9 +423,8 @@
 		# For tooltip hint
 		(macro TT_GET_LANGUAGE_INDEX)
 		(var hintKey:str = "'tooltipHint' in _pref ? _pref.tooltipHint : null")
-		(var hintTranslations:array = "hintKey ? TT_CONFIG_LOCALIZATIONS[hintKey] : []")
-		(var isHintValidLocalization:bool = "hintTranslations.length > languageIndex && !isIn(hintTranslations[languageIndex], ['', ' '])")
-		(var localizedHintText:str = "isHintValidLocalization ? hintTranslations[languageIndex] : hintTranslations[0]")
+
+		(macro TT_GET_TRANSLATION _varName="'localizedHintText'" _key="hintKey")
 
 		(var imageName:str = "'tooltipImage' in _pref ? _pref.tooltipImage : null")
 
@@ -406,7 +435,7 @@
 	(controller $Repeat renderer='TT_ParentPrefCheckerElement'
 		(bind enabled "parentPrefsCount > 0")
 		(bind count "parentPrefsCount")
-		(args _parentPref="parentPrefs[$index]" _userPrefsNum="_userPrefsNum")
+		(args _parentPref="parentPrefs[$index]" _eventName="eventName" _userPrefsNum="_userPrefsNum")
 	)
 	#
 
@@ -501,9 +530,10 @@
 	)
 )
 
-(def element TT_ParentPrefCheckerElement (_parentPref:dict, _userPrefsNum:gfx=null) layout=false
+(def element TT_ParentPrefCheckerElement (_parentPref:dict, _eventName:str, _userPrefsNum:gfx=null) layout=false
 	(scope
-		(event evChangeParentPref)
+		#(event evChangeParentPref)
+		(event name="_eventName")
 
 		(var validValues:array = "'validValues' in _parentPref ? _parentPref.validValues : []")
 		(var pref:dict = "'pref' in _parentPref ? _parentPref.pref : {}")
@@ -528,14 +558,14 @@
 		#
 		# init=true does not trigger when the element is reused.
 		(var isFirstTime:bool = true)
-		(bind isFirstTime "false" watch=false init=false (event "evChangeParentPref"))
+		(bind isFirstTime "false" watch=false init=false (event "$scope[_eventName]"))
 	)
 
-	(dispatch evChangeParentPref dir="EventDirection.UP" args="{isEnabled: isOptionEnabled ? 1 : -1}" watch=false init=false (bind trigger "isOptionEnabled"))
+	(dispatch "_eventName" dir="EventDirection.UP" args="{isEnabled: isOptionEnabled ? 1 : -1}" watch=false init=false (bind trigger "isOptionEnabled"))
 
 	# For init only!
 	# Dont decrement the count for the first time
-	(dispatch evChangeParentPref dir="EventDirection.UP" args="{isEnabled: isOptionEnabled ? 1 : 0}" watch=false on=addedToStage (bind enabled "isFirstTime"))
+	(dispatch "_eventName" dir="EventDirection.UP" args="{isEnabled: isOptionEnabled ? 1 : 0}" watch=false on=addedToStage (bind enabled "isFirstTime"))
 )
 
 (def element TT_DragTitleElement () layout=true
@@ -557,23 +587,19 @@
 (def element TT_SectionTitleElement (_data:dict, _userPrefsNum:gfx=null) layout=true
 	(scope
 		(var titleKey:str = "_data.sectionTitle")
-		(var translations:array = "TT_CONFIG_LOCALIZATIONS[titleKey]")
 		(macro TT_GET_LANGUAGE_INDEX)
+		(macro TT_GET_TRANSLATION _varName="'localizedTitleText'" _key="titleKey")
 		(var isInGameString:bool = "tr(titleKey) != titleKey")
 		(var titleColor:number = "'titleColor' in _data ? _data.titleColor : 0xFFFFFF")
-		(var isValidLocalization:bool = "translations.length > languageIndex && !isIn(translations[languageIndex], ['', ' '])")
-		(var localizedTitleText:str = "isValidLocalization ? translations[languageIndex] : translations[0]")
 	)
 	(style
 		(width = 100%)
-		#(align = "middle|center")
 	)
 	(tf
 		(class $TextDefaultBold)
 		(bind text "isInGameString ? tr(titleKey) : localizedTitleText")
 		(style
 			(fontSize = 21)
-			#(textAlign = "center")
 			(width = 100%)
 			(bind textColor "titleColor")
 		)
@@ -583,12 +609,10 @@
 (def element TT_ConfigTitleElement (_data:dict, _userPrefsNum:gfx=null) layout=true
 	(scope
 		(var titleKey:str = "_data.configTitle")
-		(var titleTranslations:array = "TT_CONFIG_LOCALIZATIONS[titleKey]")
 		(macro TT_GET_LANGUAGE_INDEX)
+		(macro TT_GET_TRANSLATION _varName="'localizedTitleText'" _key="titleKey")
 		(var isInGameString:bool = "tr(titleKey) != titleKey")
 		(var titleColor:number = "'titleColor' in _data ? _data.titleColor : 0xFFFFFF")
-		(var isTitleValidLocalization:bool = "titleTranslations.length > languageIndex && !isIn(titleTranslations[languageIndex], ['', ' '])")
-		(var localizedTitleText:str = "isTitleValidLocalization ? titleTranslations[languageIndex] : titleTranslations[0]")
 
 		(var hasTooltip:bool = "'tooltipHint' in _data && _data.tooltipHint ? true : false")
 	)
@@ -622,7 +646,6 @@
 
 (def element TT_SwitchOptionElement (_pref:dict, _userPrefsNum:gfx=null) layout=true
 	(scope
-		#(macro TT_GET_UPREFS)
 		(var prefKey:str = "'key' in _pref ? _pref.key : '' ")
 		(var defaultValue:number = "'default' in _pref ? _pref.default : false")
 		(var prefValue:number = "isNumber(_userPrefsNum[prefKey]) ? round(_userPrefsNum[prefKey]) : defaultValue")
@@ -842,6 +865,161 @@
 			_enabled = true
 			_label = 'IDS_RESET'
 			_methods = "methods"
+		)
+	)
+)
+
+(def element TT_SubPrefsOptionElement (_pref:dict, _userPrefsNum:gfx=null) layout=true
+	(scope
+		(var prefs:array = "'dropdownItems' in _pref ? _pref.dropdownItems : []")
+		(var extraData:array = "'extraData' in _pref ? _pref.extraData : []")
+		(var type:str = "'dropdownType' in _pref ? _pref.dropdownType : 'DEFAULT'")
+		(var titleRenderer:str = "type in TT_SUBPREFS_RENDERERS ? TT_SUBPREFS_RENDERERS[type] : TT_SUBPREFS_RENDERERS.DEFAULT")
+
+		(macro MOUSE_HANDLER_SCOPE)
+
+		(event evMenuClosed)
+		(event evItemChooserOpened)
+		(event evItemChooserClosed)
+
+		(var isSubPrefsVisible:bool = false)
+		(bind isSubPrefsVisible "true" init=false (event "evItemChooserOpened"))
+		(bind isSubPrefsVisible "false" init=false (event "evItemChooserClosed"))
+	)
+
+	(style
+		(width = "50%")
+	)
+
+	(dispatch evMenuClosed dir="EventDirection.DOWN" args="{}" on='removedFromStage') #To close dropdown menu when parent tooltip is closed
+
+	(hblock
+		(style
+			(width = "TT_CONFIG_OPTION_WIDTH")
+			(height = "23px")
+			(align = "left|middle")
+		)
+		
+		(hblock
+			(style
+				(width = "TT_CONFIG_OPTION_CONTROL_WIDTH")
+				(height = "L")
+				(align = "middle|center")
+			)
+			(macro MOUSE_HANDLER
+				_soundSet = "'dropdown'"
+			)
+
+			# BG
+			(block
+				(class $FullsizeAbsolute)
+				(style
+					(hitTest = false)
+				)
+
+				(block
+					(class $FullsizeAbsolute)
+					(style
+						(alpha = 0)
+						(scale9grid = 4)
+						(backgroundImage = 'url:../service_kit/buttons/button_dock/over.png')
+					)
+
+					(controller $Animation
+						(bindcall play
+							duration = 0.15
+							from	 = { alpha: 0 }
+							to		 = { alpha: 1 }
+							reverse	 = "!(rollOver && !mouseDown)"
+							(bind trigger "rollOver && !mouseDown")
+							(bind enabled "!isSubPrefsVisible")
+						)
+					)
+				)
+
+				(block
+					(class $FullsizeAbsolute)
+					(style
+						(alpha = 0)
+						(scale9grid = 4)
+						(backgroundImage = 'url:../service_kit/buttons/button_dock/down.png')
+					)
+
+					(controller $Animation
+						(bindcall play
+							duration = 0.15
+							from	 = { alpha: 0 }
+							to		 = { alpha: 1 }
+							reverse	 = "!(mouseDown || isSubPrefsVisible)"
+							(bind trigger "mouseDown || isSubPrefsVisible")
+						)
+					)
+				)
+			)
+
+			# Title
+			(controller $Repeat
+				(bind renderer "titleRenderer")
+				(bind count "prefs.length")
+				(args
+					_prefs			= "prefs"
+					_extraData		= "extraData"
+					_userPrefsNum	= "_userPrefsNum"
+				)
+			)
+
+			# Main
+			(controller $Tooltip
+				(renderer = 'TT_CustomPrefsInfotipElement')
+				(args
+					_prefs			= "prefs"
+					_isEnabled		= true
+					_userPrefsNum	= "_userPrefsNum"
+				)
+
+				(macro DEFAULT_INFOTIP_ANIMATIONS)
+				(bindcall show on='click')
+				(bindcall hide on='evClickOutside' (event "evMenuClosed"))
+
+				# Mod
+				(dispatch evItemChooserOpened dir="EventDirection.UP" args="{}" on=evShow)
+				(dispatch evItemChooserClosed dir="EventDirection.UP" args="{}" on=evHide)
+				#
+
+				(priority = 1)
+				(offset = { x: 0, y: 4 })
+				(align = "bottom|center")
+				(position = "border")
+				(screenBoundsOffset = "{ left: M, top: M, right: M, bottom: M }")
+
+				(pinTop='InfotipPinTop')
+				(pinBottom='InfotipPinBottom')
+
+				(cache = false)
+			)
+		)
+	)
+)
+
+# SubPrefs Title
+(def element TT_SubPrefsTitleShipClassRenderer(_prefs:array, _extraData:array=[], _userPrefsNum:gfx=null)
+	(scope
+		(macro TT_GET_PREF_BOOL _varName="'isClassEnabled'" _pref="_prefs[$index]")
+		(var shipType:str = "_extraData[$index]")
+		(var iconUrl:str = "'url:../battle_hud/markers/ship/icon_white_' + toLower(shipType) + '.png'")
+	)
+	(bind visible "isClassEnabled")
+	(style
+		(flow = "Flow.HORIZONTAL")
+		(align = "middle|center")
+		(width = 27px)
+		(height = 0px)
+		(hitTest = false)
+	)
+	(block
+		(style
+			(bind backgroundImage "iconUrl")
+			(backgroundSize = "autosize")
 		)
 	)
 )
@@ -1337,9 +1515,7 @@
 		(var color:number = "_itemText in _listItemRendererData ? _listItemRendererData[_itemText] + 0xFF000000 : 0xFF000000")
 
 		(macro TT_GET_LANGUAGE_INDEX)
-		(var colorTranslations:array = "_itemText in TT_CONFIG_LOCALIZATIONS ? TT_CONFIG_LOCALIZATIONS[_itemText] : []")
-		(var isValidLocalization:bool = "colorTranslations.length > languageIndex && !isIn(colorTranslations[languageIndex], ['', ' '])")
-		(var localizedText:str = "isValidLocalization ? colorTranslations[languageIndex] : colorTranslations[0]")
+		(macro TT_GET_TRANSLATION _varName="'localizedText'" _key="_itemText")
 	)
 
 	(bind name "_itemText")
@@ -1432,7 +1608,7 @@
 	)
 
 	(controller $Tooltip
-		(bind enabled "localizedText")
+		(bind enabled "localizedText != TT_INVALID_TRANSLATION")
 		(renderer = 'SimpleStatusTooltip')
 		(args
 			_text = "localizedText"
@@ -1461,9 +1637,7 @@
 		(var color:number = "_itemText in _listItemRendererData ? _listItemRendererData[_itemText] + 0xFF000000 : 0xFF000000")
 
 		(macro TT_GET_LANGUAGE_INDEX)
-		(var colorTranslations:array = "_itemText in TT_CONFIG_LOCALIZATIONS ? TT_CONFIG_LOCALIZATIONS[_itemText] : []")
-		(var isValidLocalization:bool = "colorTranslations.length > languageIndex && !isIn(colorTranslations[languageIndex], ['', ' '])")
-		(var localizedText:str = "isValidLocalization ? colorTranslations[languageIndex] : colorTranslations[0]")
+		(macro TT_GET_TRANSLATION _varName="'localizedText'" _key="_itemText")
 	)
 
 	(bind name "_itemText")
@@ -1569,9 +1743,8 @@
 		(var color:number = "_item in _choosedItemRendererParams ? _choosedItemRendererParams[_item] + 0xFF000000 : 0xFF000000")
 
 		(macro TT_GET_LANGUAGE_INDEX)
-		(var colorTranslations:array = "_item in TT_CONFIG_LOCALIZATIONS ? TT_CONFIG_LOCALIZATIONS[_item] : []")
-		(var isValidLocalization:bool = "colorTranslations.length > languageIndex && !isIn(colorTranslations[languageIndex], ['', ' '])")
-		(var localizedText:str = "isValidLocalization ? colorTranslations[languageIndex] : colorTranslations[0]")
+		(macro TT_GET_TRANSLATION _varName="'localizedText'" _key="_item")
+		(var isValidLocalization:bool = "localizedText != TT_INVALID_TRANSLATION")
 	)
 	(style
 		(height = "L")
@@ -1583,14 +1756,14 @@
 	(block
 		(style
 			(bind backgroundColor "color")
-			(bind width "localizedText ? 20px : _labelMaxWidth - 10px")
+			(bind width "isValidLocalization ? 20px : _labelMaxWidth - 10px")
 			(height = 20px)
 			(marginLeft = 7px)
 		)
 	)
 
 	(tf
-		(bind visible "localizedText")
+		(bind visible "isValidLocalization")
 
 		(class $TextDefaultBold17NM)
 		(class $FontColorBlueish)
@@ -1755,9 +1928,9 @@
 		(var isIngameText:bool = "ingameText != _itemText")
 
 		(macro TT_GET_LANGUAGE_INDEX)
-		(var translations:array = "_itemText in TT_CONFIG_LOCALIZATIONS ? TT_CONFIG_LOCALIZATIONS[_itemText] : null")
-		(var isValidLocalization:bool = "translations.length > languageIndex && !isIn(translations[languageIndex], ['', ' '])")
-		(var localizedText:str = "isIngameText ? ingameText : isValidLocalization ? translations[languageIndex] : translations[0]")
+		(macro TT_GET_TRANSLATION _varName="'localizedText'" _key="_itemText")
+
+		(var text:str = "isIngameText ? ingameText : localizedText")
 	)
 
 	(bind name "_itemText")
@@ -1833,7 +2006,7 @@
 				(textAlign = "center")
 			)
 
-			(bind text "localizedText")
+			(bind text "text")
 		)
 	)
 
@@ -1853,14 +2026,13 @@
 		(var isIngameText:bool = "ingameText != _item")
 
 		(macro TT_GET_LANGUAGE_INDEX)
-		(var colorTranslations:array = "_item in TT_CONFIG_LOCALIZATIONS ? TT_CONFIG_LOCALIZATIONS[_item] : []")
-		(var isValidLocalization:bool = "colorTranslations.length > languageIndex && !isIn(colorTranslations[languageIndex], ['', ' '])")
-		(var localizedText:str = "isIngameText ? ingameText : isValidLocalization ? colorTranslations[languageIndex] : colorTranslations[0]")
+		(macro TT_GET_TRANSLATION _varName="'localizedText'" _key="_item")
+
+		(var text:str = "isIngameText ? ingameText : localizedText")
 	)
 	(style
 		(height = "L")
 		(hitTest = false)
-		(align = "middle|center")
 	)
 
 	(tf
@@ -1881,7 +2053,7 @@
 			(backgroundColor = 0x8000ff00)
 		)
 
-		(bind text "localizedText")
+		(bind text "text")
 	)
 )
 
@@ -2203,7 +2375,7 @@
 	# _modIndex: number 
 	# Mod config's index in TT_MODS_CONFIG_LIST
 	(scope
-		(macro TT_GET_UPREFS)
+		(macro TT_GET_USERPREF)
 	)
 
 	(element TT_BackgroundElement)
@@ -2249,40 +2421,39 @@
 	)
 )
 
-# TODO: fix duplication
-(def element TT_HorizontalDivider()
+(def element TT_HorizontalDivider(_margin:number="3px", _alpha:number=1.5, _width:number=100%)
 	(style
-		(width = 100%)
-		(marginTop = 3px)
-		(marginBottom = 3px)
+		(bind width "_width")
+		(bind marginTop "_margin")
+		(bind marginBottom "_margin")
 		(align = "middle|center")
 		(hitTest = false)
-		(alpha = 1.5)
+		(bind alpha "_alpha")
 	)
-	(element HorizontalDividerTwoPx
-		(style
-			#(width = 90%)
-		)
-	)
+	(element HorizontalDividerTwoPx)
 )
 
-# TODO: fix duplication
-(def macro TT_HORIZONTAL_DEVIDER() layout=true
-	(element HorizontalDividerTwoPx
+(def element TT_CustomPrefsInfotipElement(_prefs:array, _isEnabled:bool=false, _userPrefsNum:gfx=null)
+	(style
+		(bind hitTest "_isEnabled")
+	)
+	(macro TOOLTIP_SYSTEM_DEFAULT_BACKGROUND)
+
+	(element TOOLTIP_SYSTEM_DEFAULT_CONTAINER
 		(style
-			#(paddingLeft = 30)
-			#(paddingRight = 30)
-			#(width = 90%)
-			(marginTop = 5px)
-			(marginBottom = 5px)
-			(alpha = 2)
+			(width = "TT_CONFIG_WINDOW_WIDTH")
+			(align = "middle|center")
+		)
+
+		(controller $Repeat renderer='TT_ConfigElement'
+			(bind count "_prefs.length")
+			(args
+				_pref			= "_prefs[$index]"
+				_isConfigurable	= "true" # false: all grayed out
+				_userPrefsNum	= "_userPrefsNum"
+			)
 		)
 	)
-)
-
-(def macro TT_GET_UPREFS ()
-	(var userPrefsComponent:gfx = "$datahub.getSingleComponent(CC.userPrefs)")
-	(var _userPrefsNum:gfx = "userPrefsComponent.userPrefs.chatBoxWidth" watch=false (event "userPrefsComponent.evUserPrefsChanged"))
 )
 
 (def macro TT_GET_LANGUAGE_INDEX()
@@ -2294,28 +2465,28 @@
 	(var name="_varName" type=str value="
 		_key in TT_CONFIG_LOCALIZATIONS ? TT_CONFIG_LOCALIZATIONS[_key].length > languageIndex && TT_CONFIG_LOCALIZATIONS[_key][languageIndex] != ''	? TT_CONFIG_LOCALIZATIONS[_key][languageIndex]
 																																						: TT_CONFIG_LOCALIZATIONS[_key][0]
-										: 'Invalid Translation'")
+										: TT_INVALID_TRANSLATION")
 )
 
 (def macro TT_TOOLTIP_BEHAVIOUR (_priority:expression = "0")
 
-	(bindcall show animation =	{	duration:	"0.15",
-									delay:		"0.01",
-									easing:		"Easing.cubic_out",
-									from:		{ alpha: 0, top: 5 },
-									to:			{ alpha: 1, top: 0 }
-								}
-								on = 'rollOver'
-	)
+	(showAnimation = {
+		duration: 0.05,
+		delay	: 0.0,
+		from	: {alpha: 0, top: 5},
+		to		: {alpha: 1, top: 0}
+	})
+	(hideAnimation = {
+		duration: 0.05,
+		delay	: 0.0,
+		from	: {alpha:1},
+		to		: {alpha:0, top: -5}
+	})
 
-	(bindcall hide animation = {	duration:	"0.05",
-									delay:		"0",
-									easing:		"Easing.cubic_out",
-									from:		{ alpha: 1, top: 0 },
-									to:			{ alpha: 0, top: -5}
-								}
-								on = 'rollOut'
-	)
+	(bindcall show on='rollOver')
+
+	(bindcall hide on='rollOut')
+	(bindcall hide on='removedFromStage')
 
 	(offset = {	x: 0, y: 15})
 
@@ -2331,26 +2502,32 @@
 )
 
 (def macro TT_CONFIG_BEHAVIOUR (_priority:expression = "1", _position:expression="border", _align:expression="innerTop|outerLeft")
-	(bindcall show animation =	{	duration:	"0.15",
-									easing:		"Easing.quint_in",
-									from:		{ alpha: 0, top: 10 },
-									to:			{ alpha: 1, top: 0 }
-								}
-								on='click'
+	(bindcall show
+		animation = {
+			duration: 0.15,
+			easing	: "Easing.quint_in",
+			from	: { alpha: 0, top: 10 },
+			to		: { alpha: 1, top: 0 }
+		}
+		on='click'
 	)
 
-	(bindcall hide animation =	{	duration:	"0.15",
-									easing:		"Easing.quint_out",
-									from:		{ alpha: 1, top: 0 },
-									to:			{ alpha: 0, top: 10 }
-								}
-								(event "evHideInfotip")
+	(bindcall hide
+		animation =	{
+			duration: 0.1,
+			easing	: "Easing.quint_out",
+			from	: { alpha: 1, top: 0 },
+			to		: { alpha: 0, top: 10 }
+		}
+		(event "evHideInfotip")
 	)
 	(dispatch evHideInfotip args="{}" on='evClickOutside' (bind enabled "!isChooserOpen"))
-	(screenBoundsOffset = {			left:	"TT_ELEMENT_SIZE.WIDTH",
-									top:	"TT_ELEMENT_SIZE.HEIGHT",
-									right:	"TT_ELEMENT_SIZE.WIDTH",
-									bottom:	"TT_ELEMENT_SIZE.HEIGHT"})
+	(screenBoundsOffset = {
+		left	: "TT_ELEMENT_SIZE.WIDTH",
+		top		: "TT_ELEMENT_SIZE.HEIGHT",
+		right	: "TT_ELEMENT_SIZE.WIDTH",
+		bottom	: "TT_ELEMENT_SIZE.HEIGHT"
+	})
 	(position = "_position")
 	(align = "_align")
 	(priority = "_priority")
@@ -2367,4 +2544,19 @@
 
 (def macro TT_GET_PREF_BOOL (_varName:expression, _pref:expression)
 	(var name="_varName" type=bool value="_userPrefsNum && isNumber(_userPrefsNum[_pref.key]) ? round(_userPrefsNum[_pref.key]) : _pref.default")
+)
+
+# 
+# _nullablePref can be invalid/null in this macro.
+# but it must be supplied as a dictionary access instead of attribute
+# otherwise the macro will raise an error.
+#
+# (macro TT_GET_NULLABLE_PREF_NUMBER _varName="'testVar'" _nullablePref="Test_PREFS['PREF_KEY']" _default="0") <- This is okay
+# (macro TT_GET_NULLABLE_PREF_NUMBER _varName="'testVar'" _nullablePref="Test_PREFS.PREF_KEY" _default="0") <- This is bad
+(def macro TT_GET_NULLABLE_PREF_NUMBER (_varName:expression, _nullablePref:expression, _default:expression="0")
+	(var name="_varName" type=number value="_nullablePref && 'key' in _nullablePref ? _userPrefsNum && isNumber(_userPrefsNum[_nullablePref.key]) ? _nullablePref.min + (round(_userPrefsNum[_nullablePref.key]) * _nullablePref.step) : _nullablePref.default : _default")
+)
+
+(def macro TT_GET_NULLABLE_PREF_BOOL (_varName:expression, _nullablePref:expression, _default:expression="false")
+	(var name="_varName" type=bool value="_nullablePref && 'key' in _nullablePref ? _userPrefsNum && isNumber(_userPrefsNum[_nullablePref.key]) ? round(_userPrefsNum[_nullablePref.key]) : _nullablePref.default : _default")
 )
