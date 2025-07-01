@@ -13,4 +13,6 @@
 	<mod installer="4.3.1" name="BuildViewer" version="1.1.0"/>
 	<mod installer="4.3.1" name="TTaroMinimap" version="1.1.0"/>
 	<mod installer="4.3.1" name="TTaroTeamPanels" version="1.0.0"/>
+	<mod installer="4.3.1" name="RadarTimer" version="1.0.0"/>
+	<mod installer="4.3.1" name="ShotTimer" version="1.0.0"/>
 </data>

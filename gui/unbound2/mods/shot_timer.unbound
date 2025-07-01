@@ -1,0 +1,61 @@
+(def constant SHOT_COUNTDOWN_SEC 20)
+
+(def css $TextShotTimer ()
+	(fontFamily = '$WWSDefaultFontBold')
+	(extends $TextDefault17NM)
+	(hitTest=false)
+	(textAlign = "center")
+	(textColor=0xFFFF9900)
+	(filters
+		(dropShadow
+			(distance=0)
+			(angle=0)
+			(color=0x000000)
+			(alpha=0.7)
+			(blurX=2.0)
+			(blurY=2.0)
+			(strength=1.0)
+			(quality=1)
+		)
+	)
+)
+
+(def element ShotTimer() layout=true
+	(scope
+		(var artilleryWeaponEntity:gfx = "$datahub.getPrimaryEntity(CC.weapon, SC.Ships.SHIP_WEAPON_TYPES.ARTILLERY)")
+
+		(var alertIndication:gfx = "$datahub.getSingleEntity(CC.battleIndication).alertIndication")
+		(var isAlertVisible:bool = "alertIndication.spotType == 'ship'" (event "alertIndication.evSpottedChanged"))
+
+		(var playerAvatarEntity:gfx = "$datahub.getSingleEntity(CC.playerAvatar)")
+		(var parameterKey:str = "playerAvatarEntity ? toString(playerAvatarEntity.id) + '_' + SC.Battle.PARAMETER.mgVisibilityTime : ''")
+		(var parameter:gfx = "$datahub.getPrimaryComponent(CC.parameter, parameterKey)")
+		(var mgPenaltyDuration:number = "parameter ? parameter.currentValue : 20" (event "parameter.evChanged"))
+
+		(var timer:gfx = "$datahub.getSingleComponent(CC.timer)")
+		(var currentServerTime:number = "timer.currentServerTime" (event "timer.evFrequent"))
+		(var mgPenaltyEndTime:number = "currentServerTime + mgPenaltyDuration" watch=false (event "artilleryWeaponEntity.weapon.evShoot"))
+
+		(var countdown:number = "mgPenaltyEndTime - currentServerTime")
+		(var isCountDownVisible:bool = "countdown > 0")
+		(var countdownStr:str = "isCountDownVisible ? toString(formatFloatingPoint(countdown, false)) + ' ' + tr('IDS_SECOND') : ''")
+
+		(macro STAGE_SIZE)
+	)
+
+	(bind visible "isAlertVisible && isCountDownVisible")
+
+	(style
+		(position = "absolute")
+		(hitTest = false)
+		(bind paddingLeft "(stageWidth / 2) + 222")
+		(bind paddingTop "(stageHeight / 2) - 200")
+	)
+
+	(tf
+		(class $TextShotTimer)
+		(style (minWidth=64))
+
+		(bind text "countdownStr")
+	)
+)

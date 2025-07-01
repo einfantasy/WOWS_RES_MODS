@@ -111,6 +111,12 @@
 		<element class="lesta.unbound2.UbElement" elementName="RPF_TwoDimentionalRadio" name="unbound2RPF_TwoDimentionalRadio">
 			<properties hitTest="false"/>
 		</element>
+		<element class="lesta.unbound2.UbElement" elementName="RadarTimer" name="unbound2RadarTimer" url="battle_stats.swf">
+			<properties hitTest="false"/>
+		</element>
+		<element class="lesta.unbound2.UbElement" elementName="ShotTimer" name="unbound2ShotTimer">
+			<properties hitTest="false"/>
+		</element>
 	</elementList>
 	<controllers>
 		<controller class="lesta.dialogs.battle_window_controllers.IndicatorsController" clips="logEvent,smokeIndicator,dangerousStateIndicator,localWeatherIndicator"/>
